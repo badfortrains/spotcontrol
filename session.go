@@ -106,14 +106,23 @@ func generateDeviceId(name string) string {
 	return hash64
 }
 
-//Login to spotify using username, password and app key file.
-func Login(username string, password string, appkeyPath string) *SpircController {
+//Login to spotify with supplied byte slice for app key
+func LoginWithKey(username string, password string, appkey []byte) *SpircController {
 	s := session{
 		deviceId: generateDeviceId("spotcontrol"),
 	}
 	s.startConnection()
-	loginPacket := loginPacketPassword(appkeyPath, username, password, s.deviceId)
+	loginPacket := loginPacketPassword(appkey, username, password, s.deviceId)
 	return s.doLogin(loginPacket, username)
+}
+
+//Login to spotify using username, password and app key file.
+func Login(username string, password string, appkeyPath string) *SpircController {
+	data, err := ioutil.ReadFile(appkeyPath)
+	if err != nil {
+		log.Fatal("failed to open spotify appkey file")
+	}
+	return LoginWithKey(username, password, data)
 }
 
 //Registers spotcontrol as a spotify conenct device via mdns.
@@ -249,7 +258,12 @@ func (s *session) getLoginBlobPacket(appfile string, blob blobInfo) []byte {
 	buffer.ReadByte()
 	authData := readBytes(buffer)
 
-	return loginPacket(appfile, blob.Username, authData, &authType, s.deviceId)
+	data, err := ioutil.ReadFile(appfile)
+	if err != nil {
+		log.Fatal("failed to open spotify appkey file")
+	}
+
+	return loginPacket(data, blob.Username, authData, &authType, s.deviceId)
 }
 
 func readInt(b *bytes.Buffer) uint32 {
@@ -272,18 +286,14 @@ func readBytes(b *bytes.Buffer) []byte {
 	return data
 }
 
-func loginPacketPassword(appfile, username, password, deviceId string) []byte {
-	return loginPacket(appfile, username, []byte(password),
+func loginPacketPassword(appkey []byte, username, password, deviceId string) []byte {
+	return loginPacket(appkey, username, []byte(password),
 		Spotify.AuthenticationType_AUTHENTICATION_USER_PASS.Enum(), deviceId)
 }
 
-func loginPacket(appfile string, username string, authData []byte,
+func loginPacket(appkey []byte, username string, authData []byte,
 	authType *Spotify.AuthenticationType, deviceId string) []byte {
 
-	data, err := ioutil.ReadFile(appfile)
-	if err != nil {
-		log.Fatal("failed to open spotify appkey file")
-	}
 	fmt.Println("do login", deviceId)
 
 	packet := &Spotify.ClientResponseEncrypted{
@@ -300,9 +310,9 @@ func loginPacket(appfile string, username string, authData []byte,
 		},
 		VersionString: proto.String("librespot-8315e10"),
 		Appkey: &Spotify.LibspotifyAppKey{
-			Version:      proto.Uint32(uint32(data[0])),
-			Devkey:       data[0x1:0x81],
-			Signature:    data[0x81:0x141],
+			Version:      proto.Uint32(uint32(appkey[0])),
+			Devkey:       appkey[0x1:0x81],
+			Signature:    appkey[0x81:0x141],
 			Useragent:    proto.String("librespot-8315e10"),
 			CallbackHash: make([]byte, 20),
 		},
