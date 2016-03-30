@@ -9,7 +9,6 @@ import (
 	"log"
 	"net/http"
 	"net/url"
-	"os"
 	"strings"
 	"sync"
 )
@@ -43,7 +42,7 @@ type getInfo struct {
 type discovery struct {
 	keys      privateKeys
 	cachePath string
-	loginBlob blobInfo
+	loginBlob BlobInfo
 	deviceId  string
 
 	mdnsServer  *mdns.Server
@@ -70,6 +69,15 @@ func makeGetInfo(deviceId, deviceName, publicKey string) getInfo {
 	}
 }
 
+// Advertise spotify service via mdns.  Waits for user
+// to connect to 'spotcontrol' device.  Extracts login data
+// and returns login BlobInfo.
+func BlobFromDiscovery() *BlobInfo {
+	deviceId := generateDeviceId("spotcontrol")
+	d := loginFromConnect("", deviceId)
+	return &d.loginBlob
+}
+
 func loginFromConnect(cachePath, deviceId string) discovery {
 	d := discovery{
 		keys:      generateKeys(),
@@ -87,12 +95,7 @@ func loginFromConnect(cachePath, deviceId string) discovery {
 	return d
 }
 
-func loginFromFile(cachePath, deviceId string) discovery {
-	blob, err := blobFromFile(cachePath)
-	if err != nil {
-		log.Fatal("failed to get blob from file")
-	}
-
+func discoveryFromBlob(blob BlobInfo, cachePath, deviceId string) discovery {
 	d := discovery{
 		keys:      generateKeys(),
 		cachePath: cachePath,
@@ -103,6 +106,15 @@ func loginFromFile(cachePath, deviceId string) discovery {
 	d.FindDevices()
 
 	return d
+}
+
+func loginFromFile(cachePath, deviceId string) discovery {
+	blob, err := blobFromFile(cachePath)
+	if err != nil {
+		log.Fatal("failed to get blob from file")
+	}
+
+	return discoveryFromBlob(blob, cachePath, deviceId)
 }
 
 func makeAddUserRequest(blob string, key string, deviceId string) url.Values {
@@ -248,6 +260,10 @@ func (d *discovery) startDiscoverable() {
 	info := []string{"VERSION=1.0", "CPath=/"}
 	service, err := mdns.NewMDNSService("spotcontrol189",
 		"_spotify-connect._tcp", "", "", 8080, nil, info)
+	if err != nil {
+		fmt.Println(err)
+		log.Fatal("error starting discovery")
+	}
 	server, err := mdns.NewServer(&mdns.Config{
 		Zone: service,
 	})
