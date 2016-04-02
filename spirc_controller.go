@@ -16,6 +16,7 @@ type SpircController struct {
 	username    string
 	devices     map[string]ConnectDevice
 	devicesLock sync.RWMutex
+	updateChan	chan Spotify.Frame
 }
 
 // Represents an available spotify connect device.
@@ -25,6 +26,15 @@ type ConnectDevice struct {
 	Name  string
 	Ident string
 	Url   string
+}
+
+type deviceUpdate struct {
+	Name  string
+	Ident string
+
+	IsActive bool
+	Volume int
+	State  *Spotify.State
 }
 
 // Starts controller.  Registers listeners for Spotify connect device
@@ -189,6 +199,15 @@ func (c *SpircController) run() {
 				Ident: *frame.Ident,
 			}
 			c.devicesLock.Unlock()
+		}
+
+		if c.updateChan != nil {
+	    select {
+	    case c.updateChan <- *frame:
+	      	fmt.Println("sent update")
+	    default:
+	        fmt.Println("dropped update")
+	    }
 		}
 
 		fmt.Printf("%v %v %v %v %v %v \n",
