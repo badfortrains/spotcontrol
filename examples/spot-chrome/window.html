@@ -4,19 +4,32 @@
   	<script src="zepto.js"></script>
 		<script src="spot-chrome.js"></script>
   	<script src="window.js"></script>
+    <script src="app.bundle.js"></script>
     <style>
       form label{
         display: block;
         margin-bottom: 16px;
         margin-top: 16px;
       }
+
+      body, html {
+        height: 100%;
+      }
+      #react-app-header{
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+      }
     </style>
   </head>
   <body>
-    <h2>Spotcontrol</h2>
-    <div id="loginComponent"></div>
-    <div id="selectComponent"></div>
-    <div id="stateComponent"></div>
-    <div id="commandsComponent"></div>
+    <div style="display:none">
+      <h2>Spotcontrol</h2>
+      <div id="loginComponent"></div>
+      <div id="selectComponent"></div>
+      <div id="stateComponent"></div>
+      <div id="commandsComponent"></div>
+    </div>
+    <div id="react-app-header"></div>
   </body>
 </html>

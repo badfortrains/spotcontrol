@@ -6,6 +6,8 @@ let appState = {
 	loggedIn: false
 }
 
+window.appState = appState;
+
 const PlayStatus = {
 	0: 'Stopped',
 	1: 'Playing',

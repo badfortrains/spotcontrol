@@ -14,7 +14,8 @@
     }
   },
   "permissions": [
-      "storage"
+      "storage",
+      "<all_urls>"
   ]
 }
   

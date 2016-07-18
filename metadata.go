@@ -9,54 +9,53 @@ import (
 )
 
 type Artist struct {
-	Image string `json:"image"`
-	Name  string `json:"name"`
-	Uri   string `json:"uri"`
+	Image string
+	Name  string
+	Uri   string
 }
 
 type Album struct {
-	Artists []Artist `json:"artists"`
-	Image   string   `json:"image"`
-	Name    string   `json:"name"`
-	Uri     string   `json:"uri"`
+	Artists []Artist
+	Image   string
+	Name    string
+	Uri     string
 }
 
 type Track struct {
-	Album      Album    `json:"album"`
-	Artists    []Artist `json:"artists"`
-	Image      string   `json:"image"`
-	Name       string   `json:"name"`
-	Uri        string   `json:"uri"`
-	Duration   int      `json:"duration"`
-	Popularity int      `json:"popularity"`
+	Album      Album
+	Artists    []Artist
+	Image      string
+	Name       string
+	Uri        string
+	Duration   int
+	Popularity int
 }
 
 type TopHit struct {
-	Image string `json:"image"`
-	Name  string `json:"name"`
-	Uri   string `json:"uri"`
+	Image string
+	Name  string
+	Uri   string
 	Log   struct {
-		Origin string `json:"origin"`
+		Origin string
 		TopHit string `json:"top_hit"`
-	} `json:"log"`
-	Artists []Artist `json:"artists"`
-	Album   Album    `json:"album"`
+	}
+	Artists []Artist
+	Album   Album
 }
 
 type SearchResult struct {
 	Artists struct {
-		Hits  []Artist `json:"hits"`
-		Total int      `json:"total"`
-	} `json:"artists"`
+		Hits  []Artist
+		Total int
+	}
 	Albums struct {
-		Hits  []Album `json:"hits"`
-		Total int     `json:"total"`
-	} `json:"albums"`
+		Hits  []Album
+		Total int
+	}
 	Tracks struct {
-		Hits  []Track `json:"hits"`
-		Total int     `json:"total"`
-	} `json:"tracks"`
-	Error error
+		Hits  []Track
+		Total int
+	}
 }
 
 func (c *SpircController) Search(search string) (*SearchResult, error) {
