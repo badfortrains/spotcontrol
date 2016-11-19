@@ -27,6 +27,17 @@ func (c *controllerWrapper) SendHello(cb *js.Object) {
 	}()
 }
 
+func (c *controllerWrapper) SendFrame(frame string, cb *js.Object) {
+	go func() {
+		err := c.controller.SendJsonFrame(frame)
+		if err != nil {
+			cb.Invoke("Frame send failed: " + err.Error())
+		} else {
+			cb.Invoke(nil)
+		}
+	}()
+}
+
 func (c *controllerWrapper) SendPlay(ident string, cb *js.Object) {
 	go func() {
 		err := c.controller.SendPlay(ident)

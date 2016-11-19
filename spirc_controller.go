@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	Spotify "github.com/badfortrains/spotcontrol/proto"
+	"github.com/golang/protobuf/jsonpb"
 	"github.com/golang/protobuf/proto"
 	"strings"
 	"sync"
@@ -85,6 +86,22 @@ func (c *SpircController) LoadTrack(ident string, gids []string) error {
 		State:           state,
 	}
 
+	return c.sendFrame(frame)
+}
+
+func (c *SpircController) SendJsonFrame(jsonFrame string) error {
+	c.seqNr += 1
+
+	frame := new(Spotify.Frame)
+	err := jsonpb.Unmarshal(strings.NewReader(jsonFrame), frame)
+	if err != nil {
+		return err
+	}
+
+	frame.Version = proto.Uint32(1)
+	frame.ProtocolVersion = proto.String("2.0.0")
+	frame.Ident = proto.String(c.ident)
+	frame.SeqNr = proto.Uint32(c.seqNr)
 	return c.sendFrame(frame)
 }
 
