@@ -166,3 +166,10 @@ func (c *SpircController) GetTrack(id string) (*Spotify.Track, error) {
 	err := c.mercuryGetProto(url, result)
 	return result, err
 }
+
+func (c *SpircController) GetAlbum(id string) (*Spotify.Album, error) {
+	url := "hm://metadata/3/album/" + id
+	result := &Spotify.Album{}
+	err := c.mercuryGetProto(url, result)
+	return result, err
+}

@@ -17,7 +17,7 @@ type SpircController struct {
 	username    string
 	devices     map[string]ConnectDevice
 	devicesLock sync.RWMutex
-	updateChan  chan Spotify.Frame
+	updateChan  chan *Spotify.Frame
 
 	SavedCredentials []byte
 }
@@ -255,7 +255,7 @@ func (c *SpircController) run(ch chan mercuryResponse) {
 
 		if c.updateChan != nil {
 			select {
-			case c.updateChan <- *frame:
+			case c.updateChan <- frame:
 				fmt.Println("sent update")
 			default:
 				fmt.Println("dropped update")
