@@ -1,25 +1,20 @@
-package spotcontrol
+package main
 
 import (
-	"fmt"
+	"encoding/base64"
+	"github.com/gopherjs/gopherjs/js"
 	"math/big"
-	"strings"
 )
 
-const alphabet = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-
-func convert62(id string) []byte {
-	base := big.NewInt(62)
-
-	n := &big.Int{}
-	for _, c := range []byte(id) {
-		d := big.NewInt(int64(strings.IndexByte(alphabet, c)))
-		n = n.Mul(n, base)
-		n = n.Add(n, d)
-	}
-
-	return n.Bytes()
+func main() {
+	js.Global.Set("converter", map[string]interface{}{
+		"base64ToBase62": Base64ToBase62,
+	})
 }
+
+func toBase62()
+
+const alphabet = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
 func reverse(s string) string {
 	r := []rune(s)
@@ -29,10 +24,14 @@ func reverse(s string) string {
 	return string(r)
 }
 
+func Base64ToBase62(input string) string {
+	sDec, _ := base64.StdEncoding.DecodeString(input)
+	return ConvertTo62(sDec)
+}
+
 func ConvertTo62(raw []byte) string {
 	bi := big.Int{}
 	bi.SetBytes(raw)
-	fmt.Println(bi)
 	rem := big.NewInt(0)
 	base := big.NewInt(62)
 	zero := big.NewInt(0)

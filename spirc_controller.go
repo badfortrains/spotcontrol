@@ -1,6 +1,7 @@
 package spotcontrol
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	Spotify "github.com/badfortrains/spotcontrol/proto"
@@ -93,6 +94,10 @@ func (c *SpircController) LoadTrack(ident string, gids []string) error {
 // their state.
 func (c *SpircController) SendHello() error {
 	return c.sendCmd(nil, Spotify.MessageType_kMessageTypeHello)
+}
+
+func (c *SpircController) SendNotify(ident string) error {
+	return c.sendCmd([]string{ident}, Spotify.MessageType_kMessageTypeProbe)
 }
 
 // Sends a 'play' command to spotify connect device with
@@ -208,6 +213,24 @@ func (c *SpircController) subscribe() {
 		go c.run(ch)
 		go c.SendHello()
 	})
+}
+
+func (c *SpircController) HandleUpdatesCb(cb func(device string)) {
+	c.updateChan = make(chan Spotify.Frame, 5)
+	fmt.Println("handleUpdatesCB")
+
+	go func() {
+		for {
+			update := <-c.updateChan
+			fmt.Println("got chan update")
+			jsonData, err := json.Marshal(update)
+			if err != nil {
+				fmt.Println("Error marhsaling device json")
+			} else {
+				cb(string(jsonData))
+			}
+		}
+	}()
 }
 
 func (c *SpircController) run(ch chan mercuryResponse) {

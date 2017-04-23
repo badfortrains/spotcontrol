@@ -152,6 +152,11 @@ func main() {
 			}
 		case cmds[0] == "devices":
 			ident = chooseDevice(sController, reader)
+		case cmds[0] == "notify":
+			ident = getDevice(sController, ident, reader)
+			if ident != "" {
+				sController.SendNotify(ident)
+			}
 		case cmds[0] == "mdns":
 			addMdns(sController, reader)
 		case cmds[0] == "help":
