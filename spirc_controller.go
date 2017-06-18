@@ -107,6 +107,18 @@ func (c *SpircController) SendPause(ident string) error {
 	return c.sendCmd([]string{ident}, Spotify.MessageType_kMessageTypePause)
 }
 
+// Sends a 'next' command to spotify connect device with
+// given ident.
+func (c *SpircController) SendNext(ident string) error {
+	return c.sendCmd([]string{ident}, Spotify.MessageType_kMessageTypeNext)
+}
+
+// Sends a 'prev' command to spotify connect device with
+// given ident.
+func (c *SpircController) SendPrev(ident string) error {
+	return c.sendCmd([]string{ident}, Spotify.MessageType_kMessageTypePrev)
+}
+
 func (c *SpircController) SendVolume(ident string, volume int) error {
 	c.seqNr += 1
 	messageType := Spotify.MessageType_kMessageTypeVolume
