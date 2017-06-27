@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
-	"github.com/chischaefer/spotcontrol"
+	"github.com/badfortrains/spotcontrol"
 	"os"
 	"strconv"
 	"strings"
