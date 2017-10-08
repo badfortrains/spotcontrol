@@ -3,14 +3,10 @@ package spotcontrol
 import (
 	"encoding/base64"
 	"encoding/json"
-	"errors"
 	"fmt"
-	"github.com/badfortrains/mdns"
 	"log"
-	"math/rand"
 	"net/http"
 	"net/url"
-	"strconv"
 	"strings"
 	"sync"
 
@@ -50,7 +46,6 @@ type discovery struct {
 	deviceId   string
 	deviceName string
 
-	mdnsServer  *mdns.Server
 	httpServer  *http.Server
 	devices     []connectDeviceMdns
 	devicesLock sync.RWMutex
@@ -150,29 +145,7 @@ func findCpath(info []string) string {
 }
 
 func (d *discovery) FindDevices() {
-	ch := make(chan *mdns.ServiceEntry, 10)
 
-	d.devices = make([]connectDeviceMdns, 0)
-	go func() {
-		for entry := range ch {
-			cPath := findCpath(entry.InfoFields)
-			url := fmt.Sprintf("http://%v:%v%v", entry.AddrV4, entry.Port, cPath)
-			fmt.Println("Found a device", entry)
-			d.devicesLock.Lock()
-			d.devices = append(d.devices, connectDeviceMdns{
-				path: url,
-				name: strings.Replace(entry.Name, "._spotify-connect._tcp.local.", "", 1),
-			})
-			fmt.Println("devices", d.devices)
-			d.devicesLock.Unlock()
-		}
-		fmt.Println("closed")
-	}()
-
-	err := mdns.Lookup("_spotify-connect._tcp.", ch)
-	if err != nil {
-		log.Fatal("lookup error", err)
-	}
 }
 
 func (d *discovery) ConnectToDevice(address string) {
@@ -208,33 +181,7 @@ func (d *discovery) ConnectToDevice(address string) {
 }
 
 func (d *discovery) handleAddUser(r *http.Request) error {
-	//already have login info, ignore
-	if d.loginBlob.Username != "" {
-		return nil
-	}
 
-	username := r.FormValue("userName")
-	client64 := r.FormValue("clientKey")
-	blob64 := r.FormValue("blob")
-
-	if username == "" || client64 == "" || blob64 == "" {
-		log.Println("Bad request, addUser")
-		return errors.New("Bad username request")
-	}
-
-	blob, err := newBlobInfo(blob64, client64, d.keys,
-		d.deviceId, username)
-	if err != nil {
-		return errors.New("failed to decode blob")
-	}
-
-	err = blob.saveToFile(d.cachePath)
-	if err != nil {
-		log.Println("failed to cache login info")
-	}
-
-	d.loginBlob = blob
-	d.mdnsServer.Shutdown()
 	return nil
 }
 
@@ -271,38 +218,4 @@ func (d *discovery) startHttp(done chan int, l net.Listener) {
 }
 
 func (d *discovery) startDiscoverable() {
-	fmt.Println("start discoverable")
-	info := []string{"VERSION=1.0", "CPath=/"}
-
-	ifaces, err := net.Interfaces()
-	// handle err
-	ips := make([]net.IP, 0)
-	for _, i := range ifaces {
-		addrs, _ := i.Addrs()
-		// handle err
-		for _, addr := range addrs {
-			switch v := addr.(type) {
-			case *net.IPNet:
-				ips = append(ips, v.IP)
-			case *net.IPAddr:
-				ips = append(ips, v.IP)
-			}
-			fmt.Println("found ip ", ips)
-			// process IP address
-		}
-	}
-
-	service, err := mdns.NewMDNSService("spotcontrol"+strconv.Itoa(rand.Intn(200)),
-		"_spotify-connect._tcp", "", "", 8000, ips, info)
-	if err != nil {
-		fmt.Println(err)
-		log.Fatal("error starting discovery")
-	}
-	server, err := mdns.NewServer(&mdns.Config{
-		Zone: service,
-	})
-	if err != nil {
-		log.Fatal("error starting discovery")
-	}
-	d.mdnsServer = server
 }
