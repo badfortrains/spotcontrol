@@ -84,6 +84,8 @@ func printHelp() {
 	fmt.Println("hello:                          ask devices to identify themselves")
 	fmt.Println("play:                           play current track")
 	fmt.Println("pause:                          pause playing track")
+	fmt.Println("next:                           skip to next track")
+	fmt.Println("prev:                           go back to previous track")
 	fmt.Println("devices:                        list availbale devices")
 	fmt.Println("mdns:                           show devices found via zeroconf, and login on device")
 	fmt.Println("playlist <playlist id>:         load tracks from given playlist")
@@ -149,6 +151,16 @@ func main() {
 			ident = getDevice(sController, ident, reader)
 			if ident != "" {
 				sController.SendPause(ident)
+			}
+		case cmds[0] == "next":
+			ident = getDevice(sController, ident, reader)
+			if ident != "" {
+				sController.SendNext(ident)
+			}
+		case cmds[0] == "prev":
+			ident = getDevice(sController, ident, reader)
+			if ident != "" {
+				sController.SendPrev(ident)
 			}
 		case cmds[0] == "devices":
 			ident = chooseDevice(sController, reader)
